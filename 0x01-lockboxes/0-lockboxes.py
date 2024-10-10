@@ -1,55 +1,31 @@
 #!/usr/bin/python3
 
+
+from collections import deque
+
 def canUnlockAll(boxes):
     """
-    canUnlockAll(boxes):
-    Determines if you can unlock all boxes using the keys found inside each box.
+    Determines whether all lockboxes in a given list can be unlocked.
 
-    Parameters:
-    - boxes: A list of lists. Each index represents a box and contains keys to other boxes.
+    Args:
+        boxes: A list of lists, where each inner list represents the keys in a lockbox.
 
     Returns:
-    - True: If all boxes can be unlocked.
-    - False: If there are one or more boxes that cannot be unlocked.
+        True if all lockboxes can be unlocked, False otherwise.
     """
 
-    # 🚪 Step 1: Visualize the number of boxes in the hallway
     n = len(boxes)
-
-    # 🔓 Step 2: Keep track of unlocked boxes. Initially, only Box 0 is unlocked.
     unlocked = [False] * n
-    unlocked[0] = True  # Box 0 is always open
+    unlocked[0] = True  # The first box is always unlocked
 
-    # 🧰 Step 3: Use a stack to store boxes to explore, starting with Box 0
-    stack = [0]
+    queue = deque([0])  # Queue to store unlocked boxes
 
-    # 🕵️‍♂️ Step 4: Start the search! (Simulating opening boxes)
-    while stack:
-        current_box = stack.pop()  # Peek inside the current box 🔑
+    while queue:
+        current_box = queue.popleft()
 
-        # 📦 Step 5: Inside this box, you'll find keys to other boxes...
         for key in boxes[current_box]:
-            if key < n and not unlocked[key]:  # Only unlock boxes you haven’t unlocked yet
-                unlocked[key] = True  # 🎉 You've unlocked a new box!
-                stack.append(key)  # 📤 Add it to the stack for further exploration
-                # 🗝️ Unlocking boxes is like a domino effect. One key leads to another!
+            if 0 <= key < n and not unlocked[key]:
+                unlocked[key] = True
+                queue.append(key)
 
-    # 🧮 Step 6: When you've explored all possible boxes, check if ALL boxes are unlocked.
-    # (i.e., if every box's status in `unlocked` is True)
     return all(unlocked)
-
-"""
-🎯 Fun Facts & Analogies:
-
-- The "stack" we're using is like keeping a list of 'mystery boxes' you still need to open.
-  Every time you open a box and find more keys inside, you toss them onto the stack (the
-  stack grows). If no more boxes can be opened, the stack empties.
-
-- The `unlocked` list acts like your 'progress tracker' 📝. It keeps tabs on which boxes
-  you've successfully unlocked so far. Initially, all boxes are locked (False) except for
-  the magical Box 0.
-
-- Picture it like a treasure hunt 🏴‍☠️: You unlock one chest and keep discovering keys
-  that lead to more treasure chests until you've (hopefully) unlocked all the chests.
-
-"""
