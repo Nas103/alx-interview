@@ -31,7 +31,7 @@ def canUnlockAll(boxes):
 
         # Iterate over the keys in the current box
         for key in boxes[current_box]:
-            # Unlock the box corresponding to the key, if it's not already unlocked
+            # Unlock the box corresponding to the key.
             if 0 <= key < n and not unlocked[key]:
                 unlocked[key] = True
                 queue.append(key)  # Add the newly unlocked box to the queue
