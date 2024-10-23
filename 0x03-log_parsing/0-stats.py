@@ -1,47 +1,49 @@
 #!/usr/bin/python3
 import sys
+import signal
 
 
-def print_stats(total_size, status_counts):
-    print(f"File size: {total_size}")
-    for code in sorted(status_counts.keys()):
-        if status_counts[code] > 0:
-            print(f"{code}: {status_counts[code]}")
+def signal_handler(sig, frame):
+    """Handle keyboard interruption (CTRL + C)"""
+    print_summary()
+    sys.exit(0)
 
 
-if __name__ == "__main__":
-    total_size = 0
-    status_counts = {
-            200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0
-            }
-    line_count = 0
+def print_summary():
+    """Print the summary of the log parsing"""
+    print("File size: {}".format(total_size))
+    for key in sorted(status_codes.keys()):
+        if status_codes[key] != 0:
+            print("{}: {}".format(key, status_codes[key]))
 
-    try:
-        for line in sys.stdin:
-            parts = line.split()
 
-            if len(parts) < 7:
-                continue  # Skip lines that don't match the expected format
+# Initialize variables
+total_size = 0
+status_codes = {
+    "200": 0,
+    "301": 0,
+    "400": 0,
+    "401": 0,
+    "403": 0,
+    "404": 0,
+    "405": 0,
+    "500": 0
+}
 
-            # Parse the file size and status code
-            try:
-                file_size = int(parts[-1])
-                status_code = int(parts[-2])
-            except (ValueError, IndexError):
-                continue
+# Register the signal handler
+signal.signal(signal.SIGINT, signal_handler)
 
-            total_size += file_size
-
-            if status_code in status_counts:
-                status_counts[status_code] += 1
-
-            line_count += 1
-
-            # Print stats every 10 lines
-            if line_count % 10 == 0:
-                print_stats(total_size, status_counts)
-
-    except KeyboardInterrupt:
-        pass
-    finally:
-        print_stats(total_size, status_counts)
+try:
+    for line in sys.stdin:
+        parts = line.split()
+        if len(parts) > 1:
+            # Extract file size and status code
+            size = int(parts[-1])
+            code = parts[-2]
+            total_size += size
+            if code in status_codes:
+                status_codes[code] += 1
+except Exception as e:
+    print("Error:", e)
+finally:
+    print_summary()
