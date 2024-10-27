@@ -1,34 +1,50 @@
 #!/usr/bin/python3
 import sys
+import re
 
 
-total_size = 0
-status_counts = {}
+status_code_count = {
+    200: 0,
+    301: 0,
+    400: 0,
+    401: 0,
+    403: 0,
+    404: 0,
+    405: 0,
+    500: 0
+}
+
+
+def print_stats():
+    print(f"File size: {total_file_size}")
+    for code in sorted(status_code_count.keys()):
+        if status_code_count[code] > 0:
+            print(f"{code}: {status_code_count[code]}")
+
+
+line_count = 0
+total_file_size = 0
 
 
 try:
-    for i, line in enumerate(sys.stdin, 1):
-        parts = line.split()
-        if len(parts) < 7:
-            continue
+    for line in sys.stdin:
+        line_count += 1
 
-        file_size = int(parts[-1])
-        status_code = parts[-2]
+        match = re.match(r'\S+ - (.*?) "GET /projects/260 HTTP/1.1" (\d{3}) (\d+)', line)
+        if match:
+            status_code = int(match.group(2))
+            file_size = int(match.group(3))
 
-        total_size += file_size
-        if status_code in status_counts:
-            status_counts[status_code] += 1
-        else:
-            status_counts[status_code] = 1
+            total_file_size += file_size
+            if status_code in status_code_count:
 
-        if i % 10 == 0:
-            print(f"File size: {total_size}")
-            for code in sorted(status_counts):
-                print(f"{code}: {status_counts[code]}")
+                status_code_count[status_code] += 1
+
+        if line_count % 10 == 0:
+            print_stats()
 
 
-except KeyboardInterrupt:
-    print(f"File size: {total_size}")
-    for code in sorted(status_counts):
-        print(f"{code}: {status_counts[code]}")
-    raise
+except Exception:
+    pass
+finally:
+    print_stats()
