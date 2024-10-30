@@ -1,38 +1,45 @@
 #!/usr/bin/python3
 """
-UTF-8 Validation
+Module to validate UTF-8 encoding
 """
 
 
 def validUTF8(data):
     """
-    Determine if a given data set represents a valid UTF-8 encoding.
-    
-    :param data: List of integers
-    :return: True if data is a valid UTF-8 encoding, else False
+    Checks if a given list of integers is a valid UTF-8 encoding.
+
+    Parameters:
+    - data: List[int] - List of integers where each integer represents a byte
+
+    Returns:
+    - bool: True if data is a valid UTF-8 encoding, otherwise False.
     """
-    num_bytes = 0
+    n_bytes = 0  # Number of continuation bytes expected
+
+    # Masks to check the most significant bits of each byte
+    mask1 = 1 << 7  # 10000000
+    mask2 = 1 << 6  # 01000000
 
     for num in data:
-        if num_bytes == 0:
-            if (num >> 5) == 0b110:
-                num_bytes = 1
-            elif (num >> 4) == 0b1110:
-                num_bytes = 2
-            elif (num >> 3) == 0b11110:
-                num_bytes = 3
-            elif (num >> 7):
-                return False
+        # Extract only the 8 least significant bits
+        byte = num & 0xFF
+
+        if n_bytes == 0:
+            # Count leading 1's to determine the number of bytes
+            if (byte & mask1) == 0:
+                continue  # 1-byte character
+            elif (byte & (mask1 >> 1)) == mask1:
+                n_bytes = 1  # 2-byte character
+            elif (byte & (mask1 >> 2)) == mask1:
+                n_bytes = 2  # 3-byte character
+            elif (byte & (mask1 >> 3)) == mask1:
+                n_bytes = 3  # 4-byte character
+            else:
+                return False  # Invalid UTF-8 start byte
         else:
-            if (num >> 6) != 0b10:
+            # Check continuation byte starts with '10'
+            if not (byte & mask1 and not (byte & mask2)):
                 return False
-            num_bytes -= 1
+            n_bytes -= 1
 
-    return num_bytes == 0
-
-# Example usage
-data = [197, 130, 1]
-print(validUTF8(data))  # Output: True
-
-data = [235, 140, 4]
-print(validUTF8(data))
+    return n_bytes == 0
