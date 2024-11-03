@@ -12,6 +12,10 @@ def validUTF8(data):
     mask2 = 1 << 6
 
     for num in data:
+        # Ensure the number is within the valid byte range
+        if num > 255:
+            return False
+
         bin_rep = bin(num).replace('0b', '').rjust(8, '0')
 
         if n_bytes == 0:
