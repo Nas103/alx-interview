@@ -1,41 +1,81 @@
 #!/usr/bin/python3
 
 
-def isWinner(x, nums):
-    """Determine the winner of the Prime Game."""
-    if not nums or x < 1:
-        return None
+def is_prime(n):
+    """
+    Checks if a number is prime.
 
-    # Find the maximum number in nums for sieve optimization
-    max_n = max(nums)
+    Args:
+        n: The number to check.
 
-    # Sieve of Eratosthenes to determine primes up to max_n
-    primes = [True] * (max_n + 1)
-    primes[0] = primes[1] = False  # 0 and 1 are not primes
+    Returns:
+        True if the number is prime, False otherwise.
+    """
+    if n <= 1:
+        return False
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
 
-    for i in range(2, int(max_n**0.5) + 1):
-        if primes[i]:
-            for j in range(i * i, max_n + 1, i):
-                primes[j] = False
 
-    # Cumulative prime counts
-    prime_counts = [0] * (max_n + 1)
-    for i in range(1, max_n + 1):
-        prime_counts[i] = prime_counts[i - 1] + (1 if primes[i] else 0)
+def remove_multiples(nums, prime):
+    """
+    Removes all multiples of a prime number from a list.
 
+    Args:
+        nums: The list of numbers.
+        prime: The prime number to remove multiples of.
+
+    Returns:
+        A new list with the multiples removed.
+    """
+    return [num for num in nums if num % prime != 0]
+
+
+def is_winner(x, nums):
+    """
+    Determines the winner of the prime game.
+
+    Args:
+        x: The number of rounds of the game.
+        nums: A list of integers for each round.
+
+    Returns:
+        "Maria" if Maria wins most rounds, "Ben" if Ben wins most rounds,
+        or None if the winner cannot be determined.
+    """
     maria_wins = 0
     ben_wins = 0
 
-    # Simulate each game
-    for n in nums:
-        if prime_counts[n] % 2 == 0:
-            ben_wins += 1
-        else:
-            maria_wins += 1
+    for _ in range(x):
+        player = "Maria"
+        while nums:
+            if player == "Maria":
+                # Find the first prime number in the list
+                for num in nums:
+                    if is_prime(num):
+                        prime = num
+                        nums = remove_multiples(nums, prime)
+                        break
+                else:
+                    # No prime numbers left for Maria, Ben wins
+                    ben_wins += 1
+                    break
+                player = "Ben"
+            else:
+                # Ben can take any remaining number
+                nums.pop(0)
+                maria_wins += 1
 
     if maria_wins > ben_wins:
         return "Maria"
-    elif ben_wins > maria_wins:
+    elif maria_wins < ben_wins:
         return "Ben"
     else:
         return None
+
+
+# Example usage
+if __name__ == "__main__":
+    print("Winner:", is_winner(5, [2, 5, 1, 4, 3]))
